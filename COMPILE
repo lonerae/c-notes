@@ -1,0 +1,3 @@
+#!/bin/bash
+
+gcc notes.c file.c -o notes

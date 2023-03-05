@@ -4,24 +4,17 @@
 #include <stdbool.h>
 #include <unistd.h>
 
+#include "objects.h"
+#include "file.h"
+
 #define MAX_OPTIONS 6
 
 bool load();
 void add_note_info();
 void add_note(char due_date[], char descr[]);
-void save_to_file();
-int print_notes();
 void edit_note();
 void delete_note();
 void delete_all_notes();
-
-struct note
-{
-	struct note *next;	
-	
-	char due_date[11];
-	char descr[100];
-};
 
 struct note *head = NULL;
 
@@ -67,7 +60,7 @@ int main()
 				add_note_info();
 				break;
 			case 2:
-				print_notes();
+				load_from_file();
 				break;
 			case 3:
 				edit_note();
@@ -135,37 +128,12 @@ void add_note(char due_date[], char descr[])
 	ptr->next = head;
 	head = ptr;
 	
-	save_to_file();
-}
-
-void save_to_file()
-{
-	struct note *temp = head;
-	if (temp == NULL)
-	{
-		printf("No data to save.\n");
-		return;
-	}
-
-	FILE *fptr = fopen(".notes.dat","wb");
-	if (fptr == NULL)
-	{
-		printf("Error opening file.\n");
-		return;
-	}
-
-
-	while (temp != NULL)
-	{
-		fwrite(temp, sizeof(struct note), 1, fptr);
-		temp = temp->next;
-	}
-	fclose(fptr);
+	save_to_file(head);
 }
 
 void edit_note()
 {
-	int count = print_notes();
+	int count = load_from_file();
 	printf("Which note do you want to edit?\n");
 	int choice;
 	scanf("%i", &choice);
@@ -225,6 +193,7 @@ void edit_note()
 		fclose(fptr);
 		fclose(fptw);
 		rename("notes2.dat",".notes.dat");
+		printf("\n");
 	}
 	else
 	{
@@ -232,38 +201,9 @@ void edit_note()
 	}
 }
 
-int print_notes()
-{	
-	FILE *fptr = fopen(".notes.dat","r");
-	if (fptr == NULL)
-	{
-		printf("Error opening file.\n");
-		return 0;
-	}
-	
-	int count = 0;
-	struct note *s = (struct note*) malloc(sizeof(struct note));
-
-	printf("\n----- NOTES -----\n");
-	printf("\n");
-	while (fread(s, sizeof(struct note), 1, fptr))
-	{
-		count ++;
-		printf("%i.\n", count);
-		printf("DUE: %s\nDESC: %s\n", s->due_date, s->descr);
-	}
-	fclose(fptr);
-	
-	if (count == 0)
-	{
-		printf("No notes saved.\n");	
-	}
-	return count;
-}
-
 void delete_note()
 {
-	int count = print_notes();
+	int count = load_from_file();
 	if (count != 0)
 	{
 		printf("Which note do you want to delete?\n");
