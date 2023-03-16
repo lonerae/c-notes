@@ -16,7 +16,7 @@ void edit_note();
 void delete_note();
 void delete_all_notes();
 
-struct note *head = NULL;
+note *head = NULL;
 
 int main()
 {
@@ -91,9 +91,9 @@ bool load()
 		return false;
 	}
 	
-	struct note *temp;
-	temp = (struct note*) malloc(sizeof(struct note));
-	while (fread(temp, sizeof(struct note), 1, fptr))
+	note *temp;
+	temp = (note*) malloc(sizeof(note));
+	while (fread(temp, sizeof(note), 1, fptr))
 	{
 		add_note(temp->due_date, temp->descr);
 	}
@@ -120,7 +120,7 @@ void add_note_info()
 void add_note(char due_date[], char descr[])
 {
 	struct note *ptr;
-	ptr = (struct note*) malloc(sizeof(struct note));
+	ptr = (note*) malloc(sizeof(note));
 
 	strcpy(ptr->due_date, due_date);
 	strcpy(ptr->descr, descr);
@@ -143,8 +143,8 @@ void edit_note()
 		int count = 0;
 		FILE *fptr = fopen(".notes.dat","r");
 		FILE *fptw = fopen("notes2.dat","wb");
-		struct note *temp = (struct note*) malloc(sizeof(struct note));
-		while (fread(temp, sizeof(struct note), 1, fptr))
+		note *temp = (note*) malloc(sizeof(note));
+		while (fread(temp, sizeof(note), 1, fptr))
 		{
 			count ++;
 			if (count == choice)
@@ -159,7 +159,7 @@ void edit_note()
 					scanf("%i", &choice);
 				} while (choice < 1 || choice > 3);
 				
-				struct note n;	
+				note n;	
 				switch (choice)
 				{
 					case 1:
@@ -183,11 +183,11 @@ void edit_note()
 						return;
 					default:
 				}								
-				fwrite(&n, sizeof(struct note), 1, fptw);
+				fwrite(&n, sizeof(note), 1, fptw);
 			}
 			else
 			{
-				fwrite(temp, sizeof(struct note), 1, fptw);
+				fwrite(temp, sizeof(note), 1, fptw);
 			}
 		}
 		fclose(fptr);
@@ -215,14 +215,14 @@ void delete_note()
 			FILE *fptrw = fopen("notes2.dat","wb");
 			int i = 0;
 
-			struct note *temp;
-			temp = (struct note*) malloc(sizeof(struct note));
-			while (fread(temp, sizeof(struct note), 1, fptrr))
+			note *temp;
+			temp = (note*) malloc(sizeof(note));
+			while (fread(temp, sizeof(note), 1, fptrr))
 			{
 				i++;
 				if (i != choice)
 				{
-					fwrite(temp, sizeof(struct note), 1, fptrw);
+					fwrite(temp, sizeof(note), 1, fptrw);
 				}
 			}
 			
@@ -231,7 +231,7 @@ void delete_note()
 			rename("notes2.dat",".notes.dat");
 			
 			int j = 0;
-			struct note *mem_temp = head;
+			note *mem_temp = head;
 			while (mem_temp != NULL)
 			{
 				j++;

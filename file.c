@@ -3,9 +3,9 @@
 
 #include "objects.h"
 
-void save_to_file(struct note *head)
+void save_to_file(note *head)
 {
-	struct note *temp = head;
+	note *temp = head;
 	if (temp == NULL)
 	{
 		printf("No data to save.\n");
@@ -22,7 +22,7 @@ void save_to_file(struct note *head)
 
 	while (temp != NULL)
 	{
-		fwrite(temp, sizeof(struct note), 1, fptr);
+		fwrite(temp, sizeof(note), 1, fptr);
 		temp = temp->next;
 	}
 	fclose(fptr);
@@ -38,11 +38,11 @@ int load_from_file()
 	}
 	
 	int count = 0;
-	struct note *s = (struct note*) malloc(sizeof(struct note));
+	note *s = (note*) malloc(sizeof(note));
 
 	printf("\n----- NOTES -----\n");
 	printf("\n");
-	while (fread(s, sizeof(struct note), 1, fptr))
+	while (fread(s, sizeof(note), 1, fptr))
 	{
 		count ++;
 		printf("%i.\n", count);
