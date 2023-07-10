@@ -46,7 +46,7 @@ int load_from_file()
 	{
 		count ++;
 		printf("%i.\n", count);
-		printf("DUE: %s\nDESC: %s\n", s->due_date, s->descr);
+		printf("DUE: %s\nDESC: %s\nCATEGORY: %s\n", s->due_date, s->descr, s->category);
 	}
 	fclose(fptr);
 	

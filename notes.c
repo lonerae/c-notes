@@ -7,16 +7,23 @@
 #include "objects.h"
 #include "file.h"
 
-#define MAX_OPTIONS 6
+#define MAX_OPTIONS 7
+#define MAX_CATEGORIES 10
 
 bool load();
+void load_categories(char category[]);
+void update_categories(char category[]);
 void add_note_info();
-void add_note(char due_date[], char descr[]);
+void add_note(char due_date[], char descr[], char category[]);
+void add_category(char* category);
+void delete_category();
 void edit_note();
 void delete_note();
 void delete_all_notes();
 
 note *head = NULL;
+char categories[MAX_CATEGORIES][20];
+int categories_num = 0;
 
 int main()
 {
@@ -48,7 +55,8 @@ int main()
 		printf("3. EDIT A NOTE\n");
 		printf("4. DELETE A NOTE\n");
 		printf("5. DELETE ALL NOTES\n");
-		printf("6. QUIT\n");
+		printf("6. DELETE A CATEGORY\n");
+		printf("7. QUIT\n");
 		printf("----------------\n\n");
 		
 		printf("What do you want to do? ");
@@ -72,6 +80,9 @@ int main()
 				delete_all_notes();
 				break;
 			case 6:
+				delete_category();
+				break;
+			case 7:
 				printf("Bye bye!\n");			
 				printf("Shutting down C-NOTES...\n");
 				sleep(1);
@@ -95,16 +106,69 @@ bool load()
 	temp = (note*) malloc(sizeof(note));
 	while (fread(temp, sizeof(note), 1, fptr))
 	{
-		add_note(temp->due_date, temp->descr);
+		add_note(temp->due_date, temp->descr, temp->category);
+		load_categories(temp->category);
 	}
 	fclose(fptr);
 	return true;
+}
+
+void load_categories(char category[])
+{
+	int i = 0;
+	if (i == 0)
+		{
+			strcpy(categories[i], category);
+		}
+		else
+		{
+			bool flag = true;
+			for (int j = 0; j < i; j++)
+			{
+				if (strcmp(category, categories[i]) == 0)
+				{
+					flag = false;
+					break;
+				}
+			}
+			if (flag)
+			{
+				strcpy(categories[i], category);
+			}
+		}
+		categories_num++;
+		i++;
+}
+
+void update_categories(char category[])
+{
+	if (categories_num > MAX_CATEGORIES)	
+	{
+		printf("No more categories can be added.\n");
+		printf("Reverting...\n");
+		return;
+	}
+	bool flag = true;
+	for (int j = 0; j < categories_num; j++)
+	{
+		if (strcmp(category, categories[j]) == 0)
+		{
+			flag = false;
+			break;
+		}
+	}
+	if (flag)
+	{
+		strcpy(categories[categories_num], category);
+		categories_num++;
+	}
 }
 
 void add_note_info()
 {
 	char due_date[11];
 	char descr[100];
+	char category[20];
 	
 	printf("\n");
 	printf("Give a description.\n");
@@ -113,17 +177,18 @@ void add_note_info()
 	printf("When is it due? (DD/MM/YYYY)\n");
 	scanf("\n");
 	fgets(due_date, 11, stdin);
-		
-	add_note(due_date, descr);
+	add_category(category);
+	add_note(due_date, descr, category);
 }
 
-void add_note(char due_date[], char descr[])
+void add_note(char due_date[], char descr[], char category[])
 {
 	struct note *ptr;
 	ptr = (note*) malloc(sizeof(note));
 
 	strcpy(ptr->due_date, due_date);
 	strcpy(ptr->descr, descr);
+	strcpy(ptr->category, category);
 	
 	ptr->next = head;
 	head = ptr;
@@ -131,9 +196,55 @@ void add_note(char due_date[], char descr[])
 	save_to_file(head);
 }
 
+void add_category(char* category)
+{
+	printf("Specify its category.\n");
+	int i = 1;
+	for (i; i < categories_num + 1; i++)	
+	{
+		printf("%d. %s", i, categories[i-1]);
+	}
+	printf("%d. Other\n", i);
+	int option;
+	scanf("%d", &option);
+	if (option < 1 || option > i)
+	{
+		printf("Invalid choice.\n");
+	}
+	else if (option < i)
+	{
+		strcpy(category, categories[option-1]);
+	}
+	else
+	{
+		printf("Give the category's name.\n");
+		scanf("\n");
+		fgets(category, 20, stdin);
+		update_categories(category);
+	}
+} 
+
+void delete_category()
+{
+	for (int i = 0; i < categories_num; i++)
+	{
+		printf("%d. %s\n", i+1, categories[i]);
+	}
+	printf("Which category do you want to delete?\n");
+	int option;
+	scanf("%d", &option);
+
+	for (int i = option - 1; i < categories_num - 1; i++)
+	{
+		strcpy(categories[i], categories[i+1]);
+	}
+	strcpy(categories[categories_num-1], "\0");
+}
+
 void edit_note()
 {
 	int count = load_from_file();
+	if (count == 0) return;
 	printf("Which note do you want to edit?\n");
 	int choice;
 	scanf("%i", &choice);
@@ -152,12 +263,13 @@ void edit_note()
 				int choice = -1;
 				printf("1. Due date\n");
 				printf("2. Description\n");
-				printf("3. Nothing\n");
+				printf("3. Category\n");
+				printf("4. Nothing\n");
 				printf("What do you want to edit? ");
 				do
 				{
 					scanf("%i", &choice);
-				} while (choice < 1 || choice > 3);
+				} while (choice < 1 || choice > 4);
 				
 				note n;	
 				switch (choice)
@@ -169,6 +281,7 @@ void edit_note()
 						fgets(due_date, 11, stdin);	
 						strcpy(n.due_date, due_date);
 						strcpy(n.descr, temp->descr);
+						strcpy(n.category, temp->category);
 						break;
 					case 2:
 						char descr[100];
@@ -177,8 +290,16 @@ void edit_note()
 						fgets(descr, 100, stdin);
 						strcpy(n.due_date, temp->due_date);
 						strcpy(n.descr, descr);
+						strcpy(n.category, temp->category);
 						break;
 					case 3:
+						char category[20];
+						add_category(category);
+						strcpy(n.due_date, temp->due_date);
+						strcpy(n.descr, temp->descr);
+						strcpy(n.category, category);
+						break;
+					case 4:
 						printf("Reverting...\n");
 						return;
 					default:

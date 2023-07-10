@@ -7,6 +7,7 @@ typedef struct note
 	
 	char due_date[11];
 	char descr[100];
+	char category[20];
 }
 note;
 
