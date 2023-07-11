@@ -3,12 +3,12 @@
 #include <string.h>
 #include <stdbool.h>
 #include <unistd.h>
+#include <time.h>
+#include <math.h>
 
+#include "constants.h"
 #include "objects.h"
 #include "file.h"
-
-#define MAX_OPTIONS 7
-#define MAX_CATEGORIES 10
 
 bool load();
 void load_categories(char category[]);
@@ -20,9 +20,11 @@ void delete_category();
 void edit_note();
 void delete_note();
 void delete_all_notes();
+void calculate_graph_parameters();
 
 note *head = NULL;
 char categories[MAX_CATEGORIES][20];
+int notes_num = 0;
 int categories_num = 0;
 
 int main()
@@ -56,7 +58,8 @@ int main()
 		printf("4. DELETE A NOTE\n");
 		printf("5. DELETE ALL NOTES\n");
 		printf("6. DELETE A CATEGORY\n");
-		printf("7. QUIT\n");
+		printf("7. EXPORT SCHEDULE\n");
+		printf("8. QUIT\n");
 		printf("----------------\n\n");
 		
 		printf("What do you want to do? ");
@@ -83,6 +86,9 @@ int main()
 				delete_category();
 				break;
 			case 7:
+				calculate_graph_parameters();
+				break;
+			case 8:
 				printf("Bye bye!\n");			
 				printf("Shutting down C-NOTES...\n");
 				sleep(1);
@@ -108,6 +114,7 @@ bool load()
 	{
 		add_note(temp->due_date, temp->descr, temp->category);
 		load_categories(temp->category);
+		notes_num++;
 	}
 	fclose(fptr);
 	return true;
@@ -382,21 +389,32 @@ void delete_all_notes()
 	printf("All notes deleted!\n");
 }
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+void calculate_graph_parameters()
+{
+	time_t t = time(NULL);
+	struct tm today = *localtime(&t);
+	int remaining_days = month_days[today.tm_mon] - today.tm_mday;
+	for (int i = today.tm_mon + 1; i < 12; i++)
+	{
+		remaining_days += month_days[i];
+	}
+	double segments = (double) (remaining_days * 4) / notes_num;
+	
+	note *temp = head;
+	while (temp != NULL)
+	{
+		char days[3];
+		strncpy(days, temp->due_date, 2);
+		char month[3];
+		strncpy(month, temp->due_date+3, 2);
+		int days_left = atoi(days);
+		days_left += month_days[today.tm_mon] - today.tm_mday;
+		for (int i = today.tm_mon + 1; i < atoi(month) - 1; i++)
+		{
+			days_left += month_days[i];
+		}
+		days_left *= 4;
+		temp = temp->next;
+		printf("%f\n", (double) days_left / segments);
+	}
+}

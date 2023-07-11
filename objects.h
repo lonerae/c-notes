@@ -10,5 +10,4 @@ typedef struct note
 	char category[20];
 }
 note;
-
 #endif
