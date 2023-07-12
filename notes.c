@@ -524,6 +524,8 @@ void calculate_graph_parameters()
 		}
 	}
 
+	// post edit for greater justice
+
 	FILE *fp = fopen("schedule.txt", "w");
     if (fp) {
         for (int i = 0; i < remaining_days * segments_per_day; i++)
