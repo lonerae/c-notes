@@ -21,6 +21,8 @@ void edit_note();
 void delete_note();
 void delete_all_notes();
 void calculate_graph_parameters();
+int desc_avail(const void * a, const void * b);
+int desc_actual(const void * a, const void * b);
 
 note *head = NULL;
 char categories[MAX_CATEGORIES][20];
@@ -389,6 +391,16 @@ void delete_all_notes()
 	printf("All notes deleted!\n");
 }
 
+int desc_avail(const void * a, const void * b)
+{
+	return (((note*)a)->available_segments - ((note*)b)->available_segments);
+}
+
+int desc_actual(const void * a, const void * b)
+{
+	return (((note*)a)->actual_segments - ((note*)b)->actual_segments);
+}
+
 void calculate_graph_parameters()
 {
 	time_t t = time(NULL);
@@ -398,23 +410,127 @@ void calculate_graph_parameters()
 	{
 		remaining_days += month_days[i];
 	}
-	double segments = (double) (remaining_days * 4) / notes_num;
+	int segments_per_day = 4;
+	int segments = (remaining_days * segments_per_day) / notes_num;
+	note all_notes[notes_num];
 	
 	note *temp = head;
+	int i = 0;
 	while (temp != NULL)
 	{
 		char days[3];
 		strncpy(days, temp->due_date, 2);
 		char month[3];
 		strncpy(month, temp->due_date+3, 2);
-		int days_left = atoi(days);
-		days_left += month_days[today.tm_mon] - today.tm_mday;
+		int segments_left = atoi(days);
+		segments_left += month_days[today.tm_mon] - today.tm_mday;
 		for (int i = today.tm_mon + 1; i < atoi(month) - 1; i++)
 		{
-			days_left += month_days[i];
+			segments_left += month_days[i];
 		}
-		days_left *= 4;
+		segments_left *= 4;
+		temp->available_segments = segments_left;
+		temp->actual_segments = 0;
+		all_notes[i] = *temp;
+		i++;
 		temp = temp->next;
-		printf("%f\n", (double) days_left / segments);
 	}
+
+	qsort(all_notes, notes_num, sizeof(all_notes[0]), desc_avail);
+	
+	char schedule[remaining_days * segments_per_day][101];
+	for (int i = 0; i < remaining_days * segments_per_day; i++)
+	{
+		strcpy(schedule[i]," ");
+	}
+	int start_position = 0;
+	for (int i = 0; i < notes_num; i++)
+	{
+		int day_counter = start_position;
+		double step = all_notes[i].available_segments / segments;
+		if (step < 1.0) step = 1.0;
+		int counter = segments;
+		
+		bool flag = false;
+		while (counter > 0 && day_counter < all_notes[i].available_segments)
+		{	
+			if (counter != segments) // not first loop
+			{
+				day_counter += step;
+				if (!flag)
+				{
+					for (int j = day_counter - step; j < day_counter; j++)
+					{
+						if (strcmp(schedule[j]," ") == 0)
+						{
+							start_position = j;
+							flag = true;
+							break;
+						}
+					}	
+				}
+			}
+			if (strcmp(schedule[day_counter]," ") != 0) 
+			{
+				bool found = false;
+				for (int j = day_counter - step; j < day_counter; j++)
+				{
+					if (strcmp(schedule[j]," ") == 0) 
+					{
+						strcpy(schedule[j], all_notes[i].descr);
+						counter--;
+						all_notes[i].actual_segments++;
+						found = true;
+						break;
+					}
+				}	
+				while (!found && day_counter < all_notes[i].available_segments)
+				{
+					day_counter++;
+					if (strcmp(schedule[day_counter]," ") == 0) 
+					{
+						strcpy(schedule[day_counter], all_notes[i].descr);
+						counter--;
+						all_notes[i].actual_segments++;
+						break;
+					}
+				}
+			}
+			else 
+			{
+				strcpy(schedule[day_counter], all_notes[i].descr);
+				counter--;
+				all_notes[i].actual_segments++;
+			}
+		}
+	}
+	
+	qsort(all_notes, notes_num, sizeof(all_notes[0]), desc_actual);
+
+	for (int i = 0; i < remaining_days * segments_per_day; i++)
+	{
+		if (strcmp(schedule[i]," ") == 0)
+		{
+			for (int j = 0; j < notes_num; j++)
+			{
+				if (i < all_notes[j].available_segments)
+				{
+					strcpy(schedule[i], all_notes[j].descr);
+					all_notes[j].actual_segments++;
+					qsort(all_notes, notes_num, sizeof(all_notes[0]), desc_actual);
+					break;
+				}
+			}
+		}
+	}
+
+	FILE *fp = fopen("schedule.txt", "w");
+    if (fp) {
+        for (int i = 0; i < remaining_days * segments_per_day; i++)
+		{
+			fputs(schedule[i],fp);
+		}
+        fclose(fp);
+    }
+
 }
