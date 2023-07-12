@@ -70,21 +70,36 @@ int main()
 		switch(option)
 		{
 			case 1:
+				system("clear");
 				add_note_info();
+				system("clear");  
+				printf("Note added succesfully.\n\n");
 				break;
 			case 2:
+				system("clear");
 				load_from_file();
+				printf("\nPress Y to continue.\n");
+				scanf("\n");
+				int c;
+				while ((c = getchar()) != 'y');
+				system("clear");
 				break;
 			case 3:
+				system("clear");
 				edit_note();
 				break;
 			case 4:
+				system("clear");
 				delete_note();
 				break;
 			case 5:
+				system("clear");
 				delete_all_notes();
+				printf("All notes deleted succesfully.\n\n");
 				break;
 			case 6:
+				system("clear");
+				// problematic
 				delete_category();
 				break;
 			case 7:
@@ -309,7 +324,8 @@ void edit_note()
 						strcpy(n.category, category);
 						break;
 					case 4:
-						printf("Reverting...\n");
+						system("clear");
+						printf("Reverting...\n\n");
 						return;
 					default:
 				}								
@@ -323,11 +339,13 @@ void edit_note()
 		fclose(fptr);
 		fclose(fptw);
 		rename("notes2.dat",".notes.dat");
-		printf("\n");
+		system("clear");
+		printf("Note edited successfully.\n\n");
 	}
 	else
 	{
-		printf("Invalid choice.\n");
+		system("clear");
+		printf("Invalid choice.\n\n");
 	}
 }
 
@@ -375,10 +393,14 @@ void delete_note()
 				}	
 				mem_temp = mem_temp->next;	
 			}
+
+			system("clear");
+			printf("Note deleted successfully.\n\n");
 		}
 		else
 		{
-			printf("Invalid choice.\n");
+			system("clear");
+			printf("Invalid choice.\n\n");
 		}
 	}
 }
@@ -388,7 +410,6 @@ void delete_all_notes()
 	head = NULL;
 	FILE *fptr = fopen(".notes.dat","wb");
 	fclose(fptr);
-	printf("All notes deleted!\n");
 }
 
 int desc_avail(const void * a, const void * b)
