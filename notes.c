@@ -39,7 +39,7 @@ int main()
 		fclose(fptr);
 		printf("Save file created!\n");
 	}
-	
+
 	show_logo();
 
 	int option = -1;
@@ -140,9 +140,9 @@ void load_categories(char category[])
 			if (flag)
 			{
 				strcpy(categories[i], category);
+				categories_num++;
 			}
 		}
-		categories_num++;
 		i++;
 }
 
