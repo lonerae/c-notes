@@ -52,8 +52,8 @@ void calculate_graph_parameters(int notes_num, note* head)
 
 	make_graph_draft(schedule, all_notes, segments_per_note, notes_num);
     make_graph_second_draft(schedule, all_notes, all_segments, notes_num);
-    srand((unsigned) time(&t));
-	make_graph_final(schedule, all_notes, all_segments, notes_num);
+    // srand((unsigned) time(&t));
+	// make_graph_final(schedule, all_notes, all_segments, notes_num);
 
 	FILE *fp = fopen("schedule.txt", "w");
     if (fp) {
@@ -204,44 +204,44 @@ void make_graph_second_draft(char schedule[][101], note all_notes[], int all_seg
 
 }
 
-void make_graph_final(char schedule[][101], note all_notes[], int all_segments, int notes_num)
-{
-    for (int i = 0; i < notes_num - 1; i++)
-    {
-        int target = (all_notes[i+1].actual_segments - all_notes[i].actual_segments);
-        for (int j = 0; j < all_notes[i].available_segments; j++)
-        {
-            bool flag = true;
-            for (int k = 0; k <= i; k++)
-            {
-                if (strcmp(schedule[j], all_notes[k].descr) == 0) flag = false;
-            }
-            if (flag)
-            {
-                target--;
-                if (rand() % 2 == 1)
-                {
-                    find_note(all_notes, notes_num, schedule[j])->actual_segments--;
-                    strcpy(schedule[j], all_notes[i].descr);
-                    all_notes[i].actual_segments++;
-                }
-            }
-            if (target == 0 ) break;
-        }
-    }
-}
+// void make_graph_final(char schedule[][101], note all_notes[], int all_segments, int notes_num)
+// {
+//     for (int i = 0; i < notes_num - 1; i++)
+//     {
+//         int target = (all_notes[i+1].actual_segments - all_notes[i].actual_segments);
+//         for (int j = 0; j < all_notes[i].available_segments; j++)
+//         {
+//             bool flag = true;
+//             for (int k = 0; k <= i; k++)
+//             {
+//                 if (strcmp(schedule[j], all_notes[k].descr) == 0) flag = false;
+//             }
+//             if (flag)
+//             {
+//                 target--;
+//                 if (rand() % 2 == 1)
+//                 {
+//                     find_note(all_notes, notes_num, schedule[j])->actual_segments--;
+//                     strcpy(schedule[j], all_notes[i].descr);
+//                     all_notes[i].actual_segments++;
+//                 }
+//             }
+//             if (target == 0 ) break;
+//         }
+//     }
+// }
 
-note* find_note(note all_notes[], int notes_num, char descr[])
-{
-    for (int i = 0; i < notes_num; i++)
-    {
-        if (strcmp(all_notes[i].descr, descr) == 0)
-        {
-            return &all_notes[i];
-        }
-    }
-    return NULL;
-}
+// note* find_note(note all_notes[], int notes_num, char descr[])
+// {
+//     for (int i = 0; i < notes_num; i++)
+//     {
+//         if (strcmp(all_notes[i].descr, descr) == 0)
+//         {
+//             return &all_notes[i];
+//         }
+//     }
+//     return NULL;
+// }
 
 int desc_avail(const void * a, const void * b)
 {
