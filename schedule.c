@@ -57,9 +57,33 @@ void calculate_graph_parameters(int notes_num, note* head)
 
 	FILE *fp = fopen("schedule.txt", "w");
     if (fp) {
+        int d = today.tm_mday;
+        int m = today.tm_mon;
+        d++;
+        if (d == month_days[m])
+        {
+            m++;
+            d = 1;
+        }
+        fprintf(fp, "%d / %d\n\n", d, m + 1);
         for (int i = 0; i < all_segments; i++)
 		{
-			fputs(schedule[i],fp);
+            int rem = i % SEGMENTS_PER_DAY;
+            fprintf(fp, "%d", DAY_START + 2 * rem );
+            fputs(" - ", fp);
+            fprintf(fp, "%d", DAY_START + 2 * (rem + 1));
+            fputs(" : ", fp);
+            fputs(schedule[i],fp);
+            if (rem == 3)
+            {
+                d++;
+                if (d > month_days[m])
+                {
+                    m++;
+                    d = 1;
+                }
+                if (m < 12) fprintf(fp, "\n%d / %d\n\n", d, m + 1);
+            }
 		}
         fclose(fp);
     }
@@ -73,8 +97,7 @@ int calculate_available_segments(struct tm *today, int notes_num)
 	{
 		remaining_days += month_days[i];
 	}
-	int segments_per_day = 4;
-	return remaining_days * segments_per_day;
+	return remaining_days * SEGMENTS_PER_DAY;
 }
 
 void update_note_fields(struct tm *today, note *temp)
@@ -186,7 +209,6 @@ void make_graph_final(char schedule[][101], note all_notes[], int all_segments, 
     for (int i = 0; i < notes_num - 1; i++)
     {
         int target = (all_notes[i+1].actual_segments - all_notes[i].actual_segments);
-        printf("%d\n", target);
         for (int j = 0; j < all_notes[i].available_segments; j++)
         {
             bool flag = true;

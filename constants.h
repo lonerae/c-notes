@@ -1,2 +1,4 @@
 #define MAX_OPTIONS 8
 #define MAX_CATEGORIES 10
+#define SEGMENTS_PER_DAY 4
+#define DAY_START 9
