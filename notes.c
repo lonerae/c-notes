@@ -232,19 +232,33 @@ void add_category(char* category)
 
 void delete_category()
 {
+	if (categories_num == 0)
+	{
+		system("clear");
+		printf("No categories saved.\n");
+		printf("Reverting...\n\n");
+		return;
+	}
 	for (int i = 0; i < categories_num; i++)
 	{
-		printf("%d. %s\n", i+1, categories[i]);
+		printf("%d. %s", i+1, categories[i]);
 	}
 	printf("Which category do you want to delete?\n");
 	int option;
 	scanf("%d", &option);
-
+	if (option > categories_num)
+	{
+		system("clear");
+		printf("Invalid choice.\n\n");
+		return;
+	}
 	for (int i = option - 1; i < categories_num - 1; i++)
 	{
 		strcpy(categories[i], categories[i+1]);
 	}
 	strcpy(categories[categories_num-1], "\0");
+	categories_num--;
+		
 }
 
 void edit_note()
