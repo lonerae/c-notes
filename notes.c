@@ -10,6 +10,8 @@
 #include "file.h"
 #include "schedule.h"
 
+#include "UI/UI.h"
+
 bool load();
 void load_categories(char category[]);
 void update_categories(char category[]);
@@ -37,34 +39,14 @@ int main()
 		fclose(fptr);
 		printf("Save file created!\n");
 	}
-
-	printf("\n");	
-	printf("********************************************\n");
-	printf("* #####      #   # ##### ##### ##### ##### *\n");
-	printf("* #          ##  # #   #   #   #     #     *\n");
-	printf("* #     ###  # # # #   #   #   ####  ##### *\n");
-	printf("* #          #  ## #   #   #   #         # *\n");
-	printf("* #####      #   # #####   #   ##### ##### *\n");
-	printf("********************************************\n");
-	printf("\n");
 	
+	show_logo();
+
 	int option = -1;
 	do
 	{
-		printf("----- MENU -----\n");
-		printf("1. ADD A NOTE\n");
-		printf("2. PRINT ALL NOTES\n");
-		printf("3. EDIT A NOTE\n");
-		printf("4. DELETE A NOTE\n");
-		printf("5. DELETE ALL NOTES\n");
-		printf("6. DELETE A CATEGORY\n");
-		printf("7. EXPORT SCHEDULE\n");
-		printf("8. QUIT\n");
-		printf("----------------\n\n");
-		
-		printf("What do you want to do? ");
-		scanf("%i", &option);
-		
+		show_menu();
+		scanf("%i", &option);		
 		switch(option)
 		{
 			case 1:
