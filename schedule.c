@@ -52,8 +52,8 @@ void calculate_graph_parameters(int notes_num, note* head)
 
 	make_graph_draft(schedule, all_notes, segments_per_note, notes_num);
     make_graph_second_draft(schedule, all_notes, all_segments, notes_num);
-    // srand((unsigned) time(&t));
-	// make_graph_final(schedule, all_notes, all_segments, notes_num);
+    srand((unsigned) time(&t));
+	make_graph_final(schedule, all_notes, all_segments, notes_num);
 
 	FILE *fp = fopen("schedule.txt", "w");
     if (fp) {
@@ -91,7 +91,6 @@ void calculate_graph_parameters(int notes_num, note* head)
 
 int calculate_available_segments(struct tm *today, int notes_num)
 {
-   
 	int remaining_days = month_days[today->tm_mon] - today->tm_mday;
 	for (int i = today->tm_mon + 1; i < 12; i++)
 	{
@@ -106,15 +105,24 @@ void update_note_fields(struct tm *today, note *temp)
     strncpy(days, temp->due_date, 2);
     char month[3];
     strncpy(month, temp->due_date+3, 2);
-    int segments_left = atoi(days);
-    segments_left += month_days[today->tm_mon] - today->tm_mday;
-    for (int i = today->tm_mon + 1; i < atoi(month) - 1; i++)
+    int segments_left = 0;
+    if (today->tm_mon == atoi(month) - 1)
     {
-        segments_left += month_days[i];
+        segments_left = atoi(days) - today->tm_mday;
+    }
+    else
+    {
+        segments_left = atoi(days);
+        segments_left += month_days[today->tm_mon] - today->tm_mday;
+        for (int i = today->tm_mon + 1; i < atoi(month) - 1; i++)
+        {
+            segments_left += month_days[i];
+        }
     }
     segments_left *= 4;
     temp->available_segments = segments_left;
     temp->actual_segments = 0;
+    
 }
 
 void make_graph_draft(char schedule[][101], note all_notes[], int segments_per_note, int notes_num)
@@ -122,20 +130,18 @@ void make_graph_draft(char schedule[][101], note all_notes[], int segments_per_n
 	int start_position = 0;
 	for (int i = 0; i < notes_num; i++)
 	{
-		int day_counter = start_position;
-		double step = all_notes[i].available_segments / segments_per_note;
-		if (step < 1.0) step = 1.0;
+		double day_counter = start_position;
+		double step = all_notes[i].available_segments / (double) segments_per_note;
 		int counter = segments_per_note;
-		
 		bool flag = false;
-		while (counter > 0 && day_counter < all_notes[i].available_segments)
+		while (counter > 0 && (int)day_counter + step < all_notes[i].available_segments)
 		{	
 			if (counter != segments_per_note) // not first loop
 			{
 				day_counter += step;
 				if (!flag)
 				{
-					for (int j = day_counter - step; j < day_counter; j++)
+					for (int j = (int)day_counter - step; j < (int)day_counter; j++)
 					{
 						if (strcmp(schedule[j]," ") == 0)
 						{
@@ -146,10 +152,10 @@ void make_graph_draft(char schedule[][101], note all_notes[], int segments_per_n
 					}	
 				}
 			}
-			if (strcmp(schedule[day_counter]," ") != 0) 
+			if (strcmp(schedule[(int)day_counter]," ") != 0) 
 			{
 				bool found = false;
-				for (int j = day_counter - step; j < day_counter; j++)
+				for (int j = (int)day_counter - step; j < (int)day_counter; j++)
 				{
 					if (strcmp(schedule[j]," ") == 0) 
 					{
@@ -160,12 +166,12 @@ void make_graph_draft(char schedule[][101], note all_notes[], int segments_per_n
 						break;
 					}
 				}	
-				while (!found && day_counter < all_notes[i].available_segments)
+				while (!found && day_counter + 1 < all_notes[i].available_segments)
 				{
 					day_counter++;
-					if (strcmp(schedule[day_counter]," ") == 0) 
+					if (strcmp(schedule[(int)day_counter]," ") == 0) 
 					{
-						strcpy(schedule[day_counter], all_notes[i].descr);
+						strcpy(schedule[(int)day_counter], all_notes[i].descr);
 						counter--;
 						all_notes[i].actual_segments++;
 						break;
@@ -174,7 +180,7 @@ void make_graph_draft(char schedule[][101], note all_notes[], int segments_per_n
 			}
 			else 
 			{
-				strcpy(schedule[day_counter], all_notes[i].descr);
+				strcpy(schedule[(int)day_counter], all_notes[i].descr);
 				counter--;
 				all_notes[i].actual_segments++;
 			}
@@ -204,44 +210,43 @@ void make_graph_second_draft(char schedule[][101], note all_notes[], int all_seg
 
 }
 
-// void make_graph_final(char schedule[][101], note all_notes[], int all_segments, int notes_num)
-// {
-//     for (int i = 0; i < notes_num - 1; i++)
-//     {
-//         int target = (all_notes[i+1].actual_segments - all_notes[i].actual_segments);
-//         for (int j = 0; j < all_notes[i].available_segments; j++)
-//         {
-//             bool flag = true;
-//             for (int k = 0; k <= i; k++)
-//             {
-//                 if (strcmp(schedule[j], all_notes[k].descr) == 0) flag = false;
-//             }
-//             if (flag)
-//             {
-//                 target--;
-//                 if (rand() % 2 == 1)
-//                 {
-//                     find_note(all_notes, notes_num, schedule[j])->actual_segments--;
-//                     strcpy(schedule[j], all_notes[i].descr);
-//                     all_notes[i].actual_segments++;
-//                 }
-//             }
-//             if (target == 0 ) break;
-//         }
-//     }
-// }
+void make_graph_final(char schedule[][101], note all_notes[], int all_segments, int notes_num)
+{
+    qsort(all_notes, notes_num, sizeof(all_notes[0]), desc_actual);
+    int max_distance = (all_notes[notes_num - 1].actual_segments - all_notes[0].actual_segments);
+    int guard = 0;
+    while (max_distance > 1 && guard < notes_num + 1)
+    {
+        int goal = max_distance / 2;
+        int j = 0;
+        while (j < all_notes[0].available_segments && goal != 0)
+        {
+            if (strcmp(schedule[j], all_notes[notes_num - 1].descr) == 0)
+            {
+                goal--;
+                find_note(all_notes, notes_num, schedule[j])->actual_segments--;
+                strcpy(schedule[j], all_notes[0].descr);
+                all_notes[0].actual_segments++;
+            }            
+            j++;
+        }
+        qsort(all_notes, notes_num, sizeof(all_notes[0]), desc_actual);
+        max_distance = (all_notes[notes_num - 1].actual_segments - all_notes[0].actual_segments);
+        guard++;
+    }
+}
 
-// note* find_note(note all_notes[], int notes_num, char descr[])
-// {
-//     for (int i = 0; i < notes_num; i++)
-//     {
-//         if (strcmp(all_notes[i].descr, descr) == 0)
-//         {
-//             return &all_notes[i];
-//         }
-//     }
-//     return NULL;
-// }
+note* find_note(note all_notes[], int notes_num, char descr[])
+{
+    for (int i = 0; i < notes_num; i++)
+    {
+        if (strcmp(all_notes[i].descr, descr) == 0)
+        {
+            return &all_notes[i];
+        }
+    }
+    return NULL;
+}
 
 int desc_avail(const void * a, const void * b)
 {
