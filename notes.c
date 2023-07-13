@@ -79,12 +79,11 @@ int main()
 				break;
 			case 6:
 				system("clear");
-				// problematic
 				delete_category();
 				break;
 			case 7:
 				calculate_graph_parameters(notes_num, head);
-				// system("clear");  
+				system("clear");  
 				printf("Schedule exported succesfully.\n\n");
 				break;
 			case 8:
