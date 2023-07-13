@@ -1,3 +1,3 @@
 #!/bin/bash
 gcc notes.c file.c schedule.c UI/UI.c -lm -o notes
-gnome-terminal --title="Long Term C Planner" -- ./notes
+gnome-terminal --title="Long Term C Planner" --geometry=50x35+0+0  -- ./notes
