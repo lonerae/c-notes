@@ -52,6 +52,7 @@ void calculate_graph_parameters(int notes_num, note* head)
 
 	make_graph_draft(schedule, all_notes, segments_per_note, notes_num);
     make_graph_second_draft(schedule, all_notes, all_segments, notes_num);
+    srand((unsigned) time(&t));
 	make_graph_final(schedule, all_notes, all_segments, notes_num);
 
 	FILE *fp = fopen("schedule.txt", "w");
@@ -184,7 +185,7 @@ void make_graph_final(char schedule[][101], note all_notes[], int all_segments, 
 {
     for (int i = 0; i < notes_num - 1; i++)
     {
-        int target = (all_notes[i+1].actual_segments - all_notes[i].actual_segments) / 2;
+        int target = (all_notes[i+1].actual_segments - all_notes[i].actual_segments);
         printf("%d\n", target);
         for (int j = 0; j < all_notes[i].available_segments; j++)
         {
@@ -195,10 +196,13 @@ void make_graph_final(char schedule[][101], note all_notes[], int all_segments, 
             }
             if (flag)
             {
-                find_note(all_notes, notes_num, schedule[j])->actual_segments--;
-                strcpy(schedule[j], all_notes[i].descr);
-                all_notes[i].actual_segments++;
                 target--;
+                if (rand() % 2 == 1)
+                {
+                    find_note(all_notes, notes_num, schedule[j])->actual_segments--;
+                    strcpy(schedule[j], all_notes[i].descr);
+                    all_notes[i].actual_segments++;
+                }
             }
             if (target == 0 ) break;
         }
